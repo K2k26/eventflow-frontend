@@ -742,7 +742,7 @@
     <div class="cal-selected-label" id="calLabel">Select a start date</div>
     <div class="cal-actions">
       <button class="cal-btn clear" onclick="clearCalendar()">Clear</button>
-      <button class="cal-btn apply" onclick="applyCalendar()">Apply</button>
+      <button class="cal-btn apply" onclick="applyCalendar()">Confirm</button>
     </div>
   </div>
 
@@ -1404,12 +1404,6 @@ function formatDateRange(range) {
   return `between ${fmt(range.from)} and ${fmt(range.to)}`;
 }
 
-// Close calendar when clicking outside
-document.addEventListener('click', e => {
-  if (!e.target.closest('.cal-popup') && !e.target.closest('#tabPick')) {
-    document.getElementById('calPopup')?.classList.remove('open');
-  }
-});
 
 function onDateChange() {
   const from = document.getElementById('dateFrom').value;
