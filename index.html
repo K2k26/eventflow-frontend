@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Eventflow</title>
+<script>(function(){const t=localStorage.getItem('ef_theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -52,6 +53,44 @@
       --shadow-lg:0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
     }
   }
+  html[data-theme="dark"] {
+    --bg:       #111110;
+    --bg2:      #1a1a18;
+    --bg3:      #222220;
+    --border:   #2a2a28;
+    --border2:  #3a3a38;
+    --text:     #f0efe9;
+    --text2:    #8a8a85;
+    --text3:    #55554f;
+    --accent:   #f0efe9;
+    --accent-bg:#1f1f1d;
+    --success:  #4ade80;
+    --success-bg:#0f2a1a;
+    --danger:   #f87171;
+    --danger-bg:#2a0f0f;
+    --shadow:   0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    --shadow-lg:0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+    color-scheme: dark;
+  }
+  html[data-theme="light"] {
+    --bg:       #ffffff;
+    --bg2:      #f7f7f5;
+    --bg3:      #f0efec;
+    --border:   #e8e7e4;
+    --border2:  #d4d3cf;
+    --text:     #111110;
+    --text2:    #6b6a67;
+    --text3:    #a8a7a3;
+    --accent:   #111110;
+    --accent-bg:#f0efec;
+    --success:  #1a7a4a;
+    --success-bg:#edf7f1;
+    --danger:   #c0392b;
+    --danger-bg:#fdf0ef;
+    --shadow:   0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-lg:0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    color-scheme: light;
+  }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   em { font-style: normal; }
@@ -89,6 +128,15 @@
   }
 
   .nav-right { display: flex; align-items: center; gap: 8px; }
+
+  .theme-toggle {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text2); flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .theme-toggle:hover { background: var(--bg2); color: var(--text); border-color: var(--text2); }
 
   .nav-btn {
     font-family: 'Poppins', sans-serif;
@@ -702,9 +750,12 @@
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="#">Event<em>flow</em></a>
-  <div class="nav-right" id="navRight">
-    <button class="nav-btn" onclick="openModal('login')">Log in</button>
-    <button class="nav-btn primary" onclick="openModal('signup')">Sign up</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode"></button>
+    <div class="nav-right" id="navRight">
+      <button class="nav-btn" onclick="openModal('login')">Log in</button>
+      <button class="nav-btn primary" onclick="openModal('signup')">Sign up</button>
+    </div>
   </div>
 </nav>
 
@@ -917,6 +968,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── THEME ──────────────────────────────────────────────────────
+const MOON_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const SUN_ICON  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+
+function initTheme() {
+  const saved = localStorage.getItem('ef_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  setTheme(saved || (prefersDark ? 'dark' : 'light'), false);
+}
+
+function setTheme(theme, save = true) {
+  document.documentElement.setAttribute('data-theme', theme);
+  if (save) localStorage.setItem('ef_theme', theme);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.innerHTML = theme === 'dark' ? SUN_ICON : MOON_ICON;
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  setTheme(current === 'dark' ? 'light' : 'dark');
+}
+
 // ── STATE ──────────────────────────────────────────────────────
 let user = JSON.parse(localStorage.getItem('ef_user') || 'null');
 let favourites = JSON.parse(localStorage.getItem('ef_favs') || '[]');
@@ -926,9 +999,7 @@ let mapInstance = null, markers = [];
 
 // ── INIT ──────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  const k = JSON.parse(localStorage.getItem('ef_keys') || '{}');
-  if (k.tm) document.getElementById('tmKey').value = k.tm;
-  if (k.mb) document.getElementById('mbToken').value = k.mb;
+  initTheme();
   renderNav();
 });
 
@@ -1421,11 +1492,7 @@ function formatDateRange(range) {
   return '';
 }
 
-function saveKeys() {
-  const tm = document.getElementById('tmKey').value.trim();
-  const mb = document.getElementById('mbToken').value.trim();
-  localStorage.setItem('ef_keys', JSON.stringify({ tm, mb }));
-}
+function saveKeys() {}
 
 async function doSearch() {
   saveKeys();
