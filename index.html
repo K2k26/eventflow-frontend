@@ -265,8 +265,12 @@
     background: var(--bg2);
     cursor: pointer;
     transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 5px;
   }
   .chip:hover { border-color: var(--text); color: var(--text); background: var(--bg3); }
+  .chip.near-me { border-color: var(--border2); color: var(--text); font-weight: 500; }
+  .chip.near-me:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .chip.near-me:hover svg { stroke: var(--bg); }
 
   /* ── MAIN LAYOUT ── */
   .main {
@@ -800,6 +804,10 @@
   </div>
 
   <div class="chips">
+    <span class="chip near-me" id="nearMeChip" onclick="searchNearMe()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      Near me
+    </span>
     <span class="chip" onclick="quickSearch('techno in Berlin')">Techno · Berlin</span>
     <span class="chip" onclick="quickSearch('jazz club in New Orleans')">Jazz · New Orleans</span>
     <span class="chip" onclick="quickSearch('flamenco in Seville')">Flamenco · Seville</span>
@@ -1513,6 +1521,37 @@ async function doSearch() {
 }
 
 function quickSearch(q) { document.getElementById('searchInput').value = q; doSearch(); }
+
+function searchNearMe() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported by your browser'); return; }
+  const chip = document.getElementById('nearMeChip');
+  chip.style.opacity = '0.5';
+  chip.style.pointerEvents = 'none';
+  showToast('Getting your location…');
+  navigator.geolocation.getCurrentPosition(
+    async ({ coords: { latitude, longitude } }) => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
+          headers: { 'Accept-Language': 'en' }
+        });
+        const data = await res.json();
+        const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || 'my location';
+        document.getElementById('searchInput').value = `events in ${city}`;
+      } catch {
+        document.getElementById('searchInput').value = 'events near me';
+      }
+      chip.style.opacity = '';
+      chip.style.pointerEvents = '';
+      doSearch();
+    },
+    (err) => {
+      chip.style.opacity = '';
+      chip.style.pointerEvents = '';
+      showToast(err.code === 1 ? 'Location access denied' : 'Could not get your location');
+    },
+    { timeout: 8000 }
+  );
+}
 
 function parseQuery(query) {
   const match = query.match(/\bin\s+([a-zA-Z\s]+)$/i) || query.match(/\bat\s+([a-zA-Z\s]+)$/i);
