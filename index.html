@@ -262,12 +262,20 @@
   }
   .filter-panel.open { display: block; }
 
-  .filter-section { margin-bottom: 16px; }
-  .filter-section:last-of-type { margin-bottom: 0; }
-  .filter-label {
-    font-size: 11px; font-weight: 600; color: var(--text3);
-    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px;
+  /* FILTER ACCORDION */
+  .filter-section { border-bottom: 1px solid var(--border); }
+  .filter-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 0; cursor: pointer; user-select: none;
   }
+  .filter-section-left { display: flex; align-items: center; gap: 8px; }
+  .filter-section-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .filter-section-meta { font-size: 12px; color: var(--text3); }
+  .filter-chevron { color: var(--text3); flex-shrink: 0; transition: transform 0.2s ease; }
+  .filter-section.open .filter-chevron { transform: rotate(180deg); }
+  .filter-section-body { display: none; padding-bottom: 16px; }
+  .filter-section.open .filter-section-body { display: block; }
+
   .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
   .filter-pill {
     font-size: 12px; font-weight: 500;
@@ -280,10 +288,63 @@
   .filter-pill:hover { border-color: var(--text2); color: var(--text); background: var(--bg3); }
   .filter-pill.on { background: var(--text); color: var(--bg); border-color: var(--text); }
 
+  /* PRICE SLIDER */
+  .price-slider-wrap {
+    position: relative; height: 24px;
+    margin: 16px 2px 6px;
+  }
+  .price-track {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    left: 0; right: 0; height: 4px;
+    background: var(--border2); border-radius: 2px; pointer-events: none;
+  }
+  .price-fill {
+    position: absolute; height: 100%;
+    background: var(--text); border-radius: 2px;
+    left: 0%; right: 0%;
+  }
+  .price-thumb {
+    position: absolute; width: 100%;
+    top: 50%; transform: translateY(-50%);
+    -webkit-appearance: none; appearance: none;
+    background: transparent; pointer-events: none;
+    height: 4px; margin: 0; padding: 0; outline: none;
+  }
+  .price-thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--text);
+    cursor: pointer; pointer-events: all;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+  }
+  .price-thumb::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .price-thumb::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--text);
+    cursor: pointer; pointer-events: all;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .price-display {
+    display: flex; justify-content: space-between;
+    font-size: 12px; font-weight: 500; color: var(--text2);
+    padding: 0 2px; margin-top: 6px;
+  }
+  .price-slider-wrap.disabled { opacity: 0.3; pointer-events: none; }
+  #freePill { margin-bottom: 12px; }
+
+  /* SORT SELECT (results bar) */
+  .sort-select {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px; font-weight: 500; color: var(--text2);
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 99px; padding: 4px 10px;
+    cursor: pointer; outline: none; transition: border-color 0.15s;
+  }
+  .sort-select:hover { border-color: var(--text2); color: var(--text); }
+
   .filter-footer {
-    display: flex; gap: 8px;
-    margin-top: 18px; padding-top: 16px;
-    border-top: 1px solid var(--border);
+    display: flex; gap: 8px; margin-top: 16px;
   }
   .filter-foot-btn {
     flex: 1; padding: 9px; border-radius: var(--radius);
@@ -894,48 +955,74 @@
 
     <!-- Filter panel -->
     <div class="filter-panel" id="filterPanel">
-      <div class="filter-section">
-        <div class="filter-label">Price</div>
-        <div class="filter-pills">
-          <button class="filter-pill" data-group="price" data-val="free" onclick="toggleFilterPill(this)">Free</button>
-          <button class="filter-pill" data-group="price" data-val="under30" onclick="toggleFilterPill(this)">Under $30</button>
-          <button class="filter-pill" data-group="price" data-val="30to75" onclick="toggleFilterPill(this)">$30 – $75</button>
-          <button class="filter-pill" data-group="price" data-val="75plus" onclick="toggleFilterPill(this)">$75+</button>
+
+      <!-- Price -->
+      <div class="filter-section" id="fsec-price">
+        <div class="filter-section-header" onclick="toggleFilterSection('price')">
+          <div class="filter-section-left">
+            <span class="filter-section-title">Price</span>
+            <span class="filter-section-meta" id="fmeta-price"></span>
+          </div>
+          <svg class="filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="filter-section-body">
+          <button class="filter-pill" id="freePill" onclick="toggleFreeFilter()">Free</button>
+          <div class="price-slider-wrap" id="priceSliderWrap">
+            <div class="price-track"><div class="price-fill" id="priceFill"></div></div>
+            <input type="range" class="price-thumb" id="priceMin" min="0" max="10000" value="0" step="50" oninput="onPriceInput()">
+            <input type="range" class="price-thumb" id="priceMax" min="0" max="10000" value="10000" step="50" oninput="onPriceInput()">
+          </div>
+          <div class="price-display">
+            <span id="priceMinLabel">$0</span>
+            <span id="priceMaxLabel">$10k+</span>
+          </div>
         </div>
       </div>
-      <div class="filter-section">
-        <div class="filter-label">Genre</div>
-        <div class="filter-pills">
-          <button class="filter-pill" data-group="genre" data-val="music" onclick="toggleFilterPill(this)">Music</button>
-          <button class="filter-pill" data-group="genre" data-val="sports" onclick="toggleFilterPill(this)">Sports</button>
-          <button class="filter-pill" data-group="genre" data-val="arts" onclick="toggleFilterPill(this)">Arts &amp; Theatre</button>
-          <button class="filter-pill" data-group="genre" data-val="comedy" onclick="toggleFilterPill(this)">Comedy</button>
-          <button class="filter-pill" data-group="genre" data-val="nightlife" onclick="toggleFilterPill(this)">Nightlife</button>
-          <button class="filter-pill" data-group="genre" data-val="food" onclick="toggleFilterPill(this)">Food &amp; Drink</button>
-          <button class="filter-pill" data-group="genre" data-val="family" onclick="toggleFilterPill(this)">Family</button>
-          <button class="filter-pill" data-group="genre" data-val="electronic" onclick="toggleFilterPill(this)">Electronic</button>
+
+      <!-- Genre -->
+      <div class="filter-section" id="fsec-genre">
+        <div class="filter-section-header" onclick="toggleFilterSection('genre')">
+          <div class="filter-section-left">
+            <span class="filter-section-title">Genre</span>
+            <span class="filter-section-meta" id="fmeta-genre"></span>
+          </div>
+          <svg class="filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="filter-section-body">
+          <div class="filter-pills">
+            <button class="filter-pill" data-group="genre" data-val="music" onclick="toggleFilterPill(this)">Music</button>
+            <button class="filter-pill" data-group="genre" data-val="sports" onclick="toggleFilterPill(this)">Sports</button>
+            <button class="filter-pill" data-group="genre" data-val="arts" onclick="toggleFilterPill(this)">Arts &amp; Theatre</button>
+            <button class="filter-pill" data-group="genre" data-val="comedy" onclick="toggleFilterPill(this)">Comedy</button>
+            <button class="filter-pill" data-group="genre" data-val="nightlife" onclick="toggleFilterPill(this)">Nightlife</button>
+            <button class="filter-pill" data-group="genre" data-val="food" onclick="toggleFilterPill(this)">Food &amp; Drink</button>
+            <button class="filter-pill" data-group="genre" data-val="family" onclick="toggleFilterPill(this)">Family</button>
+            <button class="filter-pill" data-group="genre" data-val="electronic" onclick="toggleFilterPill(this)">Electronic</button>
+          </div>
         </div>
       </div>
-      <div class="filter-section">
-        <div class="filter-label">Format</div>
-        <div class="filter-pills">
-          <button class="filter-pill" data-group="format" data-val="concert" onclick="toggleFilterPill(this)">Concert</button>
-          <button class="filter-pill" data-group="format" data-val="festival" onclick="toggleFilterPill(this)">Festival</button>
-          <button class="filter-pill" data-group="format" data-val="club" onclick="toggleFilterPill(this)">Club Night</button>
-          <button class="filter-pill" data-group="format" data-val="show" onclick="toggleFilterPill(this)">Show</button>
-          <button class="filter-pill" data-group="format" data-val="outdoor" onclick="toggleFilterPill(this)">Outdoor</button>
-          <button class="filter-pill" data-group="format" data-val="intimate" onclick="toggleFilterPill(this)">Intimate Venue</button>
+
+      <!-- Format -->
+      <div class="filter-section" id="fsec-format">
+        <div class="filter-section-header" onclick="toggleFilterSection('format')">
+          <div class="filter-section-left">
+            <span class="filter-section-title">Format</span>
+            <span class="filter-section-meta" id="fmeta-format"></span>
+          </div>
+          <svg class="filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="filter-section-body">
+          <div class="filter-pills">
+            <button class="filter-pill" data-group="format" data-val="concert" onclick="toggleFilterPill(this)">Concert</button>
+            <button class="filter-pill" data-group="format" data-val="festival" onclick="toggleFilterPill(this)">Festival</button>
+            <button class="filter-pill" data-group="format" data-val="club" onclick="toggleFilterPill(this)">Club Night</button>
+            <button class="filter-pill" data-group="format" data-val="show" onclick="toggleFilterPill(this)">Show</button>
+            <button class="filter-pill" data-group="format" data-val="outdoor" onclick="toggleFilterPill(this)">Outdoor</button>
+            <button class="filter-pill" data-group="format" data-val="intimate" onclick="toggleFilterPill(this)">Intimate Venue</button>
+          </div>
         </div>
       </div>
-      <div class="filter-section">
-        <div class="filter-label">Sort by</div>
-        <div class="filter-pills">
-          <button class="filter-pill" data-group="sort" data-val="date" onclick="toggleFilterPill(this)">Earliest date</button>
-          <button class="filter-pill" data-group="sort" data-val="price_asc" onclick="toggleFilterPill(this)">Price: low to high</button>
-          <button class="filter-pill" data-group="sort" data-val="price_desc" onclick="toggleFilterPill(this)">Price: high to low</button>
-          <button class="filter-pill" data-group="sort" data-val="popular" onclick="toggleFilterPill(this)">Popularity</button>
-        </div>
-      </div>
+
       <div class="filter-footer">
         <button class="filter-foot-btn clear-f" onclick="clearFilters()">Clear all</button>
         <button class="filter-foot-btn apply-f" onclick="applyFiltersAndSearch()">Apply filters</button>
@@ -990,7 +1077,16 @@
   <div>
     <div class="results-bar">
       <span class="results-count" id="resultsCount"></span>
-      <span class="source-pill" id="sourcePill" style="display:none"></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <select class="sort-select" id="sortSelect" style="display:none;" onchange="onSortChange()">
+          <option value="">Sort: Relevance</option>
+          <option value="date">Sort: Earliest date</option>
+          <option value="price_asc">Sort: Price ↑</option>
+          <option value="price_desc">Sort: Price ↓</option>
+          <option value="popular">Sort: Popular</option>
+        </select>
+        <span class="source-pill" id="sourcePill" style="display:none"></span>
+      </div>
     </div>
     <div id="resultsArea">
       <div class="empty-state">
@@ -1502,33 +1598,95 @@ function formatExpiry(input) {
 }
 
 // ── FILTERS ────────────────────────────────────────────────────
-let activeFilters = { price: null, genre: [], format: [], sort: null };
+let activeFilters = { price: null, priceMin: 0, priceMax: 10000, genre: [], format: [] };
 
 function toggleFilterPanel() {
   document.getElementById('searchDropdown').classList.remove('open');
   document.getElementById('filterPanel').classList.toggle('open');
 }
 
+function toggleFilterSection(name) {
+  const sec = document.getElementById('fsec-' + name);
+  const isOpen = sec.classList.contains('open');
+  document.querySelectorAll('.filter-section').forEach(s => s.classList.remove('open'));
+  if (!isOpen) sec.classList.add('open');
+}
+
 function toggleFilterPill(btn) {
   const group = btn.dataset.group;
   const val = btn.dataset.val;
-  if (group === 'price' || group === 'sort') {
-    const wasOn = btn.classList.contains('on');
-    btn.closest('.filter-pills').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
-    btn.classList.toggle('on', !wasOn);
-    activeFilters[group] = wasOn ? null : val;
-  } else {
-    btn.classList.toggle('on');
-    const arr = activeFilters[group];
-    if (btn.classList.contains('on')) { if (!arr.includes(val)) arr.push(val); }
-    else activeFilters[group] = arr.filter(v => v !== val);
-  }
+  btn.classList.toggle('on');
+  const arr = activeFilters[group];
+  if (btn.classList.contains('on')) { if (!arr.includes(val)) arr.push(val); }
+  else activeFilters[group] = arr.filter(v => v !== val);
   updateFilterBtn();
+  updateFilterMeta(group);
+}
+
+function toggleFreeFilter() {
+  const btn = document.getElementById('freePill');
+  const wrap = document.getElementById('priceSliderWrap');
+  const isNowFree = btn.classList.toggle('on');
+  if (isNowFree) {
+    document.getElementById('priceMin').value = 0;
+    document.getElementById('priceMax').value = 0;
+    wrap.classList.add('disabled');
+    activeFilters.price = 'free'; activeFilters.priceMin = 0; activeFilters.priceMax = 0;
+    document.getElementById('priceFill').style.cssText = 'left:0%;right:100%';
+    document.getElementById('priceMinLabel').textContent = '$0';
+    document.getElementById('priceMaxLabel').textContent = '$0';
+  } else {
+    document.getElementById('priceMax').value = 10000;
+    wrap.classList.remove('disabled');
+    activeFilters.price = null; activeFilters.priceMin = 0; activeFilters.priceMax = 10000;
+    document.getElementById('priceFill').style.cssText = 'left:0%;right:0%';
+    document.getElementById('priceMinLabel').textContent = '$0';
+    document.getElementById('priceMaxLabel').textContent = '$10k+';
+  }
+  updateFilterBtn(); updateFilterMeta('price');
+}
+
+function onPriceInput() {
+  const minEl = document.getElementById('priceMin');
+  const maxEl = document.getElementById('priceMax');
+  let min = parseInt(minEl.value), max = parseInt(maxEl.value);
+  if (min > max) { minEl.value = max; min = max; }
+  // Deactivate Free if slider moved
+  if (max > 0) {
+    document.getElementById('freePill').classList.remove('on');
+    if (activeFilters.price === 'free') activeFilters.price = null;
+    document.getElementById('priceSliderWrap').classList.remove('disabled');
+  }
+  const pct = v => (v / 10000 * 100).toFixed(1) + '%';
+  document.getElementById('priceFill').style.cssText = `left:${pct(min)};right:${(100 - max/10000*100).toFixed(1)}%`;
+  document.getElementById('priceMinLabel').textContent = fmtPrice(min);
+  document.getElementById('priceMaxLabel').textContent = fmtPrice(max);
+  activeFilters.priceMin = min; activeFilters.priceMax = max;
+  activeFilters.price = (min === 0 && max === 10000) ? null : 'range';
+  updateFilterBtn(); updateFilterMeta('price');
+}
+
+function fmtPrice(v) {
+  if (v === 0) return '$0';
+  if (v >= 10000) return '$10k+';
+  if (v >= 1000) return '$' + (v / 1000).toFixed(1).replace('.0', '') + 'k';
+  return '$' + v;
+}
+
+function updateFilterMeta(group) {
+  const el = document.getElementById('fmeta-' + group);
+  if (!el) return;
+  if (group === 'price') {
+    if (activeFilters.price === 'free') { el.textContent = '· Free'; return; }
+    if (activeFilters.price === 'range') { el.textContent = `· ${fmtPrice(activeFilters.priceMin)} – ${fmtPrice(activeFilters.priceMax)}`; return; }
+    el.textContent = '';
+  } else {
+    el.textContent = activeFilters[group].length ? '· ' + activeFilters[group].join(', ') : '';
+  }
 }
 
 function countActiveFilters() {
-  return (activeFilters.price ? 1 : 0) + (activeFilters.sort ? 1 : 0)
-    + activeFilters.genre.length + activeFilters.format.length;
+  return (activeFilters.price ? 1 : 0) + activeFilters.genre.length + activeFilters.format.length;
 }
 
 function updateFilterBtn() {
@@ -1547,8 +1705,19 @@ function updateFilterBtn() {
 }
 
 function clearFilters() {
-  activeFilters = { price: null, genre: [], format: [], sort: null };
+  activeFilters = { price: null, priceMin: 0, priceMax: 10000, genre: [], format: [] };
   document.querySelectorAll('.filter-pill.on').forEach(p => p.classList.remove('on'));
+  const minEl = document.getElementById('priceMin'), maxEl = document.getElementById('priceMax');
+  if (minEl) minEl.value = 0;
+  if (maxEl) maxEl.value = 10000;
+  const wrap = document.getElementById('priceSliderWrap');
+  if (wrap) wrap.classList.remove('disabled');
+  const fill = document.getElementById('priceFill');
+  if (fill) fill.style.cssText = 'left:0%;right:0%';
+  const minLbl = document.getElementById('priceMinLabel'), maxLbl = document.getElementById('priceMaxLabel');
+  if (minLbl) minLbl.textContent = '$0';
+  if (maxLbl) maxLbl.textContent = '$10k+';
+  ['price', 'genre', 'format'].forEach(updateFilterMeta);
   updateFilterBtn();
 }
 
@@ -1557,14 +1726,24 @@ function applyFiltersAndSearch() {
   if (document.getElementById('searchInput').value.trim()) doSearch();
 }
 
+function onSortChange() {
+  if (document.getElementById('searchInput').value.trim()) doSearch();
+}
+
 function buildFilterPrompt() {
   const parts = [];
-  const priceMap = { free: 'free events only', under30: 'ticket price under $30', '30to75': 'ticket price $30–$75', '75plus': 'ticket price over $75' };
-  if (priceMap[activeFilters.price]) parts.push(priceMap[activeFilters.price]);
-  if (activeFilters.genre.length) parts.push(`genre must be one of: ${activeFilters.genre.join(', ')}`);
-  if (activeFilters.format.length) parts.push(`event format: ${activeFilters.format.join(', ')}`);
-  const sortMap = { date: 'sorted by earliest date first', price_asc: 'sorted by lowest price first', price_desc: 'sorted by highest price first', popular: 'sorted by estimated popularity' };
-  if (sortMap[activeFilters.sort]) parts.push(sortMap[activeFilters.sort]);
+  if (activeFilters.price === 'free') parts.push('free events only (no ticket cost)');
+  else if (activeFilters.price === 'range') {
+    const { priceMin: mn, priceMax: mx } = activeFilters;
+    if (mn > 0 && mx < 10000) parts.push(`ticket price between $${mn} and $${mx}`);
+    else if (mn > 0) parts.push(`ticket price above $${mn}`);
+    else parts.push(`ticket price under $${mx}`);
+  }
+  if (activeFilters.genre.length) parts.push(`genre: ${activeFilters.genre.join(', ')}`);
+  if (activeFilters.format.length) parts.push(`format: ${activeFilters.format.join(', ')}`);
+  const sortVal = document.getElementById('sortSelect')?.value;
+  const sortMap = { date: 'sorted by earliest date', price_asc: 'sorted by lowest price first', price_desc: 'sorted by highest price first', popular: 'sorted by popularity' };
+  if (sortMap[sortVal]) parts.push(sortMap[sortVal]);
   return parts.length ? `\nFilter constraints: ${parts.join('; ')}.` : '';
 }
 
@@ -1907,6 +2086,7 @@ function showLoading() {
   document.getElementById('resultsArea').innerHTML = `<div class="empty-state"><div class="spinner"></div>Finding events…</div>`;
   document.getElementById('resultsCount').textContent = '';
   document.getElementById('sourcePill').style.display = 'none';
+  document.getElementById('sortSelect').style.display = 'none';
   clearMap();
 }
 
@@ -1916,6 +2096,7 @@ function showError() {
 
 function renderResults(events, source, mbToken) {
   document.getElementById('resultsCount').textContent = `${events.length} result${events.length !== 1 ? 's' : ''}`;
+  document.getElementById('sortSelect').style.display = 'inline-block';
   const pill = document.getElementById('sourcePill');
   pill.style.display = 'inline';
   pill.textContent = source === 'ticketmaster' ? 'Ticketmaster' : 'AI suggestions';
