@@ -205,9 +205,13 @@
   }
 
   /* ── SEARCH ── */
-  .search-wrap {
+  .search-container {
     max-width: 600px;
     margin: 0 auto 16px;
+    position: relative;
+  }
+
+  .search-wrap {
     display: flex;
     background: var(--bg);
     border: 1px solid var(--border2);
@@ -220,6 +224,106 @@
     border-color: var(--text);
     box-shadow: 0 0 0 3px rgba(17,17,16,0.08), var(--shadow-lg);
   }
+
+  /* FILTER BUTTON */
+  .filter-btn {
+    margin: 6px 0 6px 0;
+    background: var(--bg2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 7px 13px;
+    cursor: pointer; white-space: nowrap;
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 5px;
+    transition: all 0.15s; position: relative;
+  }
+  .filter-btn:hover { background: var(--bg3); color: var(--text); }
+  .filter-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .filter-btn.active:hover { opacity: 0.85; }
+  .filter-count {
+    position: absolute; top: 3px; right: 3px;
+    background: #e54d2e; color: #fff;
+    font-size: 9px; font-weight: 700;
+    width: 13px; height: 13px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* FILTER PANEL */
+  .filter-panel {
+    display: none; position: absolute;
+    top: calc(100% + 8px); left: 0; right: 0;
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+    padding: 20px; z-index: 350;
+    animation: modal-in 0.15s ease;
+  }
+  .filter-panel.open { display: block; }
+
+  .filter-section { margin-bottom: 16px; }
+  .filter-section:last-of-type { margin-bottom: 0; }
+  .filter-label {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filter-pill {
+    font-size: 12px; font-weight: 500;
+    padding: 5px 13px; border-radius: 99px;
+    border: 1px solid var(--border); color: var(--text2);
+    background: var(--bg2); cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.12s; user-select: none;
+  }
+  .filter-pill:hover { border-color: var(--text2); color: var(--text); background: var(--bg3); }
+  .filter-pill.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  .filter-footer {
+    display: flex; gap: 8px;
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .filter-foot-btn {
+    flex: 1; padding: 9px; border-radius: var(--radius);
+    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); transition: all 0.15s;
+  }
+  .filter-foot-btn.clear-f { background: none; color: var(--text2); }
+  .filter-foot-btn.clear-f:hover { background: var(--bg2); }
+  .filter-foot-btn.apply-f { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .filter-foot-btn.apply-f:hover { opacity: 0.8; }
+
+  /* RECENT SEARCHES */
+  .search-dropdown {
+    display: none; position: absolute;
+    top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+    z-index: 400; overflow: hidden;
+    animation: modal-in 0.12s ease;
+  }
+  .search-dropdown.open { display: block; }
+  .recent-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px 7px;
+  }
+  .recent-title { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .recent-clear-btn {
+    font-size: 12px; color: var(--text3); background: none; border: none;
+    font-family: 'Poppins', sans-serif; cursor: pointer; transition: color 0.15s;
+  }
+  .recent-clear-btn:hover { color: var(--danger); }
+  .recent-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; width: 100%;
+    background: none; border: none;
+    font-family: 'Poppins', sans-serif; font-size: 13px; color: var(--text2);
+    cursor: pointer; text-align: left; transition: background 0.1s;
+  }
+  .recent-item:hover { background: var(--bg2); color: var(--text); }
+  .recent-empty { padding: 16px 14px; font-size: 13px; color: var(--text3); text-align: center; }
 
   .search-input {
     flex: 1;
@@ -769,9 +873,74 @@
   <h1>Find your next <em>great</em> night out</h1>
   <p>Search for concerts, clubs, and live events anywhere — powered by AI.</p>
 
-  <div class="search-wrap">
-    <input class="search-input" id="searchInput" type="text" placeholder="techno in Berlin, jazz club in Barcelona…" />
-    <button class="search-submit" id="searchBtn" onclick="doSearch()">Search</button>
+  <div class="search-container">
+    <div class="search-wrap">
+      <input class="search-input" id="searchInput" type="text" placeholder="techno in Berlin, jazz club in Barcelona…" />
+      <button class="filter-btn" id="filterBtn" onclick="toggleFilterPanel()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
+        Filters
+      </button>
+      <button class="search-submit" id="searchBtn" onclick="doSearch()">Search</button>
+    </div>
+
+    <!-- Recent searches -->
+    <div class="search-dropdown" id="searchDropdown">
+      <div class="recent-header">
+        <span class="recent-title">Recent searches</span>
+        <button class="recent-clear-btn" onclick="clearRecentSearches()">Clear all</button>
+      </div>
+      <div id="recentList"></div>
+    </div>
+
+    <!-- Filter panel -->
+    <div class="filter-panel" id="filterPanel">
+      <div class="filter-section">
+        <div class="filter-label">Price</div>
+        <div class="filter-pills">
+          <button class="filter-pill" data-group="price" data-val="free" onclick="toggleFilterPill(this)">Free</button>
+          <button class="filter-pill" data-group="price" data-val="under30" onclick="toggleFilterPill(this)">Under $30</button>
+          <button class="filter-pill" data-group="price" data-val="30to75" onclick="toggleFilterPill(this)">$30 – $75</button>
+          <button class="filter-pill" data-group="price" data-val="75plus" onclick="toggleFilterPill(this)">$75+</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">Genre</div>
+        <div class="filter-pills">
+          <button class="filter-pill" data-group="genre" data-val="music" onclick="toggleFilterPill(this)">Music</button>
+          <button class="filter-pill" data-group="genre" data-val="sports" onclick="toggleFilterPill(this)">Sports</button>
+          <button class="filter-pill" data-group="genre" data-val="arts" onclick="toggleFilterPill(this)">Arts &amp; Theatre</button>
+          <button class="filter-pill" data-group="genre" data-val="comedy" onclick="toggleFilterPill(this)">Comedy</button>
+          <button class="filter-pill" data-group="genre" data-val="nightlife" onclick="toggleFilterPill(this)">Nightlife</button>
+          <button class="filter-pill" data-group="genre" data-val="food" onclick="toggleFilterPill(this)">Food &amp; Drink</button>
+          <button class="filter-pill" data-group="genre" data-val="family" onclick="toggleFilterPill(this)">Family</button>
+          <button class="filter-pill" data-group="genre" data-val="electronic" onclick="toggleFilterPill(this)">Electronic</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">Format</div>
+        <div class="filter-pills">
+          <button class="filter-pill" data-group="format" data-val="concert" onclick="toggleFilterPill(this)">Concert</button>
+          <button class="filter-pill" data-group="format" data-val="festival" onclick="toggleFilterPill(this)">Festival</button>
+          <button class="filter-pill" data-group="format" data-val="club" onclick="toggleFilterPill(this)">Club Night</button>
+          <button class="filter-pill" data-group="format" data-val="show" onclick="toggleFilterPill(this)">Show</button>
+          <button class="filter-pill" data-group="format" data-val="outdoor" onclick="toggleFilterPill(this)">Outdoor</button>
+          <button class="filter-pill" data-group="format" data-val="intimate" onclick="toggleFilterPill(this)">Intimate Venue</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">Sort by</div>
+        <div class="filter-pills">
+          <button class="filter-pill" data-group="sort" data-val="date" onclick="toggleFilterPill(this)">Earliest date</button>
+          <button class="filter-pill" data-group="sort" data-val="price_asc" onclick="toggleFilterPill(this)">Price: low to high</button>
+          <button class="filter-pill" data-group="sort" data-val="price_desc" onclick="toggleFilterPill(this)">Price: high to low</button>
+          <button class="filter-pill" data-group="sort" data-val="popular" onclick="toggleFilterPill(this)">Popularity</button>
+        </div>
+      </div>
+      <div class="filter-footer">
+        <button class="filter-foot-btn clear-f" onclick="clearFilters()">Clear all</button>
+        <button class="filter-foot-btn apply-f" onclick="applyFiltersAndSearch()">Apply filters</button>
+      </div>
+    </div>
   </div>
 
 
@@ -1332,6 +1501,114 @@ function formatExpiry(input) {
   input.value = v;
 }
 
+// ── FILTERS ────────────────────────────────────────────────────
+let activeFilters = { price: null, genre: [], format: [], sort: null };
+
+function toggleFilterPanel() {
+  document.getElementById('searchDropdown').classList.remove('open');
+  document.getElementById('filterPanel').classList.toggle('open');
+}
+
+function toggleFilterPill(btn) {
+  const group = btn.dataset.group;
+  const val = btn.dataset.val;
+  if (group === 'price' || group === 'sort') {
+    const wasOn = btn.classList.contains('on');
+    btn.closest('.filter-pills').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
+    btn.classList.toggle('on', !wasOn);
+    activeFilters[group] = wasOn ? null : val;
+  } else {
+    btn.classList.toggle('on');
+    const arr = activeFilters[group];
+    if (btn.classList.contains('on')) { if (!arr.includes(val)) arr.push(val); }
+    else activeFilters[group] = arr.filter(v => v !== val);
+  }
+  updateFilterBtn();
+}
+
+function countActiveFilters() {
+  return (activeFilters.price ? 1 : 0) + (activeFilters.sort ? 1 : 0)
+    + activeFilters.genre.length + activeFilters.format.length;
+}
+
+function updateFilterBtn() {
+  const btn = document.getElementById('filterBtn');
+  if (!btn) return;
+  const count = countActiveFilters();
+  let badge = btn.querySelector('.filter-count');
+  if (count > 0) {
+    btn.classList.add('active');
+    if (!badge) { badge = document.createElement('span'); badge.className = 'filter-count'; btn.appendChild(badge); }
+    badge.textContent = count;
+  } else {
+    btn.classList.remove('active');
+    badge?.remove();
+  }
+}
+
+function clearFilters() {
+  activeFilters = { price: null, genre: [], format: [], sort: null };
+  document.querySelectorAll('.filter-pill.on').forEach(p => p.classList.remove('on'));
+  updateFilterBtn();
+}
+
+function applyFiltersAndSearch() {
+  document.getElementById('filterPanel').classList.remove('open');
+  if (document.getElementById('searchInput').value.trim()) doSearch();
+}
+
+function buildFilterPrompt() {
+  const parts = [];
+  const priceMap = { free: 'free events only', under30: 'ticket price under $30', '30to75': 'ticket price $30–$75', '75plus': 'ticket price over $75' };
+  if (priceMap[activeFilters.price]) parts.push(priceMap[activeFilters.price]);
+  if (activeFilters.genre.length) parts.push(`genre must be one of: ${activeFilters.genre.join(', ')}`);
+  if (activeFilters.format.length) parts.push(`event format: ${activeFilters.format.join(', ')}`);
+  const sortMap = { date: 'sorted by earliest date first', price_asc: 'sorted by lowest price first', price_desc: 'sorted by highest price first', popular: 'sorted by estimated popularity' };
+  if (sortMap[activeFilters.sort]) parts.push(sortMap[activeFilters.sort]);
+  return parts.length ? `\nFilter constraints: ${parts.join('; ')}.` : '';
+}
+
+// ── RECENT SEARCHES ────────────────────────────────────────────
+let recentSearches = JSON.parse(localStorage.getItem('ef_recent') || '[]');
+
+function saveRecentSearch(query) {
+  if (!query) return;
+  recentSearches = [query, ...recentSearches.filter(q => q !== query)].slice(0, 8);
+  localStorage.setItem('ef_recent', JSON.stringify(recentSearches));
+}
+
+function renderRecentSearches() {
+  const list = document.getElementById('recentList');
+  if (!list) return;
+  if (!recentSearches.length) {
+    list.innerHTML = `<div class="recent-empty">No recent searches yet</div>`;
+    return;
+  }
+  list.innerHTML = recentSearches.map(q => `
+    <button class="recent-item" onmousedown="quickSearch(${JSON.stringify(q)})">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text3)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      ${q}
+    </button>`).join('');
+}
+
+function clearRecentSearches() {
+  recentSearches = [];
+  localStorage.removeItem('ef_recent');
+  renderRecentSearches();
+}
+
+function showSearchDropdown() {
+  renderRecentSearches();
+  if (recentSearches.length) {
+    document.getElementById('searchDropdown').classList.add('open');
+    document.getElementById('filterPanel').classList.remove('open');
+  }
+}
+
+function hideSearchDropdown() {
+  setTimeout(() => document.getElementById('searchDropdown')?.classList.remove('open'), 160);
+}
+
 // ── SEARCH ─────────────────────────────────────────────────────
 // ── CALENDAR ───────────────────────────────────────────────────
 let calYear, calMonth, calStart = null, calEnd = null, calSelecting = false;
@@ -1506,6 +1783,9 @@ async function doSearch() {
   saveKeys();
   const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
+  saveRecentSearch(query);
+  document.getElementById('searchDropdown').classList.remove('open');
+  document.getElementById('filterPanel').classList.remove('open');
   const btn = document.getElementById('searchBtn');
   btn.disabled = true; btn.textContent = 'Searching…';
   showLoading();
@@ -1608,7 +1888,8 @@ function formatDate(d, t) {
 async function fetchAI(query) {
   const dateRange = getDateRange();
   const dateStr = dateRange ? ` happening ${formatDateRange(dateRange)}` : '';
-  const prompt = `You are an event discovery assistant. The user is searching for: "${query}"${dateStr}
+  const filterStr = buildFilterPrompt();
+  const prompt = `You are an event discovery assistant. The user is searching for: "${query}"${dateStr}${filterStr}
 Return a JSON array of 6 realistic, specific event or venue recommendations with real lat/lng coordinates.${dateRange ? ` All events should fall within the date range ${dateRange.from || 'any'} to ${dateRange.to || 'any'}. Set the "date" field to a realistic date within this range in the format "Sat, 12 Jul".` : ''}
 Return ONLY valid JSON array, no markdown, no extra text:
 [{"emoji":"single emoji","name":"specific venue or event name","location":"neighbourhood, city, country","description":"1-2 sentences","tags":["tag1","tag2"],"date":null,"url":null,"lat":48.8566,"lng":2.3522}]`;
@@ -1744,7 +2025,15 @@ function showToast(msg) {
 }
 
 document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+document.getElementById('searchInput').addEventListener('focus', showSearchDropdown);
+document.getElementById('searchInput').addEventListener('blur', hideSearchDropdown);
 document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); }));
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-container')) {
+    document.getElementById('filterPanel')?.classList.remove('open');
+    document.getElementById('searchDropdown')?.classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
