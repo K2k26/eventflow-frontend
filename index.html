@@ -969,11 +969,10 @@
           <button class="filter-pill" id="freePill" onclick="toggleFreeFilter()">Free</button>
           <div class="price-slider-wrap" id="priceSliderWrap">
             <div class="price-track"><div class="price-fill" id="priceFill"></div></div>
-            <input type="range" class="price-thumb" id="priceMin" min="0" max="10000" value="0" step="50" oninput="onPriceInput()">
             <input type="range" class="price-thumb" id="priceMax" min="0" max="10000" value="10000" step="50" oninput="onPriceInput()">
           </div>
           <div class="price-display">
-            <span id="priceMinLabel">$0</span>
+            <span>$0</span>
             <span id="priceMaxLabel">$10k+</span>
           </div>
         </div>
@@ -1628,41 +1627,31 @@ function toggleFreeFilter() {
   const wrap = document.getElementById('priceSliderWrap');
   const isNowFree = btn.classList.toggle('on');
   if (isNowFree) {
-    document.getElementById('priceMin').value = 0;
     document.getElementById('priceMax').value = 0;
     wrap.classList.add('disabled');
     activeFilters.price = 'free'; activeFilters.priceMin = 0; activeFilters.priceMax = 0;
     document.getElementById('priceFill').style.cssText = 'left:0%;right:100%';
-    document.getElementById('priceMinLabel').textContent = '$0';
     document.getElementById('priceMaxLabel').textContent = '$0';
   } else {
     document.getElementById('priceMax').value = 10000;
     wrap.classList.remove('disabled');
     activeFilters.price = null; activeFilters.priceMin = 0; activeFilters.priceMax = 10000;
     document.getElementById('priceFill').style.cssText = 'left:0%;right:0%';
-    document.getElementById('priceMinLabel').textContent = '$0';
     document.getElementById('priceMaxLabel').textContent = '$10k+';
   }
   updateFilterBtn(); updateFilterMeta('price');
 }
 
 function onPriceInput() {
-  const minEl = document.getElementById('priceMin');
   const maxEl = document.getElementById('priceMax');
-  let min = parseInt(minEl.value), max = parseInt(maxEl.value);
-  if (min > max) { minEl.value = max; min = max; }
-  // Deactivate Free if slider moved
-  if (max > 0) {
-    document.getElementById('freePill').classList.remove('on');
-    if (activeFilters.price === 'free') activeFilters.price = null;
-    document.getElementById('priceSliderWrap').classList.remove('disabled');
-  }
-  const pct = v => (v / 10000 * 100).toFixed(1) + '%';
-  document.getElementById('priceFill').style.cssText = `left:${pct(min)};right:${(100 - max/10000*100).toFixed(1)}%`;
-  document.getElementById('priceMinLabel').textContent = fmtPrice(min);
+  const max = parseInt(maxEl.value);
+  document.getElementById('freePill').classList.remove('on');
+  if (activeFilters.price === 'free') activeFilters.price = null;
+  document.getElementById('priceSliderWrap').classList.remove('disabled');
+  document.getElementById('priceFill').style.cssText = `left:0%;right:${(100 - max / 10000 * 100).toFixed(1)}%`;
   document.getElementById('priceMaxLabel').textContent = fmtPrice(max);
-  activeFilters.priceMin = min; activeFilters.priceMax = max;
-  activeFilters.price = (min === 0 && max === 10000) ? null : 'range';
+  activeFilters.priceMin = 0; activeFilters.priceMax = max;
+  activeFilters.price = (max === 10000) ? null : 'range';
   updateFilterBtn(); updateFilterMeta('price');
 }
 
@@ -1678,7 +1667,7 @@ function updateFilterMeta(group) {
   if (!el) return;
   if (group === 'price') {
     if (activeFilters.price === 'free') { el.textContent = '· Free'; return; }
-    if (activeFilters.price === 'range') { el.textContent = `· ${fmtPrice(activeFilters.priceMin)} – ${fmtPrice(activeFilters.priceMax)}`; return; }
+    if (activeFilters.price === 'range') { el.textContent = `· Up to ${fmtPrice(activeFilters.priceMax)}`; return; }
     el.textContent = '';
   } else {
     el.textContent = activeFilters[group].length ? '· ' + activeFilters[group].join(', ') : '';
@@ -1707,15 +1696,13 @@ function updateFilterBtn() {
 function clearFilters() {
   activeFilters = { price: null, priceMin: 0, priceMax: 10000, genre: [], format: [] };
   document.querySelectorAll('.filter-pill.on').forEach(p => p.classList.remove('on'));
-  const minEl = document.getElementById('priceMin'), maxEl = document.getElementById('priceMax');
-  if (minEl) minEl.value = 0;
+  const maxEl = document.getElementById('priceMax');
   if (maxEl) maxEl.value = 10000;
   const wrap = document.getElementById('priceSliderWrap');
   if (wrap) wrap.classList.remove('disabled');
   const fill = document.getElementById('priceFill');
   if (fill) fill.style.cssText = 'left:0%;right:0%';
-  const minLbl = document.getElementById('priceMinLabel'), maxLbl = document.getElementById('priceMaxLabel');
-  if (minLbl) minLbl.textContent = '$0';
+  const maxLbl = document.getElementById('priceMaxLabel');
   if (maxLbl) maxLbl.textContent = '$10k+';
   ['price', 'genre', 'format'].forEach(updateFilterMeta);
   updateFilterBtn();
